@@ -1,5 +1,5 @@
 from pydantic import BaseModel, HttpUrl
-from typing import Optional
+from typing import Optional, List
 
 
 class CrawlRequest(BaseModel):
@@ -15,4 +15,4 @@ class ImageResult(BaseModel):
 
 
 class CrawlResponse(BaseModel):
-    images: list[ImageResult]
+    images: List[ImageResult]

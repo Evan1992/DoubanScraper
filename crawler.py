@@ -1,5 +1,6 @@
 import asyncio
 import httpx
+from typing import List
 from bs4 import BeautifulSoup
 from models import ImageResult
 
@@ -22,7 +23,7 @@ async def fetch_page(client: httpx.AsyncClient, url: str) -> str:
     return response.text
 
 
-def extract_images(html: str, base_url: str, max_images: int) -> list[ImageResult]:
+def extract_images(html: str, base_url: str, max_images: int) -> List[ImageResult]:
     soup = BeautifulSoup(html, "html.parser")
     results = []
 
@@ -52,8 +53,8 @@ def extract_images(html: str, base_url: str, max_images: int) -> list[ImageResul
     return results
 
 
-async def crawl(url: str, max_images: int) -> list[ImageResult]:
+async def crawl(url: str, max_images: int) -> List[ImageResult]:
     await asyncio.sleep(REQUEST_DELAY)
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(verify=False) as client:
         html = await fetch_page(client, url)
     return extract_images(html, base_url=url, max_images=max_images)
