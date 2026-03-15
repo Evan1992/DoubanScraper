@@ -2,13 +2,20 @@
 
 ## Overview
 
-A microservice that receives a crawl request, scrapes images from a target website, and returns image metadata to the client. The client is responsible for uploading images to the database.
+A microservice that receives a search name, crawls Douban to find the most-reviewed matching title, and returns its cover image to the client. The client is responsible for uploading the image to the database.
 
 ## Architecture
 
 ```
-Client → [POST /crawl] → Microservice → Scrape images → Return image list → Client → DB
+Client → [POST /crawl] → Microservice → Search Douban → Pick top result → Fetch detail page → Return cover image → Client → DB
 ```
+
+## Crawling Flow
+
+1. Search `https://www.douban.com/search?q={name}`
+2. In 相关书影音, pick the result with the most reviews
+3. Follow the link to its detail page
+4. Extract the main cover image from `#mainpic`
 
 ## Tech Stack
 
@@ -17,7 +24,7 @@ Client → [POST /crawl] → Microservice → Scrape images → Return image lis
 | Language | Python | Best scraping ecosystem |
 | Framework | FastAPI | Async-native, fast, auto-generated docs |
 | HTTP client | httpx | Async HTTP requests |
-| HTML parsing | BeautifulSoup4 | Extract `<img>` tags from HTML |
+| HTML parsing | BeautifulSoup4 | Extract tags from HTML |
 | JS rendering | Playwright (optional) | For JavaScript-rendered pages |
 | Containerization | Docker | Portable, deployable anywhere |
 
@@ -33,8 +40,7 @@ POST /crawl
 
 ```json
 {
-  "url": "https://example.com/page",
-  "max_images": 50
+  "name": "肖申克的救赎"
 }
 ```
 
@@ -44,31 +50,31 @@ POST /crawl
 {
   "images": [
     {
-      "url": "https://example.com/image.jpg",
-      "alt": "description",
-      "width": 800,
-      "height": 600
+      "url": "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p xxx.jpg",
+      "alt": "肖申克的救赎"
     }
   ]
 }
 ```
 
+Returns a single cover image (the main poster from the detail page).
+
 ### What the service returns
 
-The service returns **image URLs and metadata** rather than raw binary data. The client then decides whether to download and store the images, or just store the URLs. This keeps the microservice lightweight and stateless.
+The service returns the **cover image URL and alt text** of the top-matched Douban title. The client downloads and stores the image. This keeps the microservice lightweight and stateless.
 
 ## Key Design Decisions
 
+- **Single cover image** — only the main `#mainpic` image is returned, not all images on the page
+- **Top result by review count** — picks the most-reviewed result from 相关书影音 to ensure relevance
 - **Return URLs, not binaries** — minimizes bandwidth and keeps the service simple
 - **Async by default** — FastAPI + httpx handle concurrent requests efficiently
 - **Stateless** — no internal state; each request is fully independent
 
 ## Constraints & Best Practices
 
-- **Rate limiting** — add delays between requests to avoid hammering the target site
-- **Robots.txt** — respect crawl rules of the target site
-- **Timeouts** — set request timeouts to prevent hanging on slow sites
-- **Concurrency** — use `asyncio.gather` with a semaphore when crawling multiple pages
+- **Rate limiting** — 0.5s delay between requests to avoid hammering Douban
+- **Timeouts** — 15s request timeout to prevent hanging on slow responses
 
 ## Project Structure
 
