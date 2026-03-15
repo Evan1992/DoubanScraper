@@ -1,10 +1,9 @@
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel
 from typing import Optional, List
 
 
 class CrawlRequest(BaseModel):
-    url: HttpUrl
-    max_images: int = 50
+    name: str
 
 
 class ImageResult(BaseModel):
@@ -12,6 +11,7 @@ class ImageResult(BaseModel):
     alt: Optional[str] = None
     width: Optional[int] = None
     height: Optional[int] = None
+    referer: Optional[str] = None  # Required as Referer header when fetching the image
 
 
 class CrawlResponse(BaseModel):
