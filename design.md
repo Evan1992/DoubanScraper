@@ -12,10 +12,16 @@ Client → [POST /crawl] → Microservice → Search Douban → Pick top result 
 
 ## Crawling Flow
 
-1. Search `https://www.douban.com/search?q={name}`
-2. In 相关书影音, pick the result with the most reviews
-3. Follow the link to its detail page
-4. Extract the main cover image from `#mainpic`
+**Primary (general search):**
+1. Load `https://www.douban.com/search?q={name}` via Playwright (JS-rendered)
+2. Parse `.DouWeb-SR-subject-card` cards; pick the one with the most reviews
+3. If the card has no inline image, follow its link and extract `#mainpic` from the detail page
+4. Return the large-format poster URL (`l_ratio_poster`)
+
+**Fallback (movie-only search, no login required):**
+1. If the general search returns an error 103 (login wall), load `https://movie.douban.com/subject_search?search_text={name}&cat=1002`
+2. Parse `.item-root` cards; pick the one with the most reviews
+3. Return the large-format poster URL directly (image is inline in results)
 
 ## Tech Stack
 
@@ -23,9 +29,8 @@ Client → [POST /crawl] → Microservice → Search Douban → Pick top result 
 |-------|------------|--------|
 | Language | Python | Best scraping ecosystem |
 | Framework | FastAPI | Async-native, fast, auto-generated docs |
-| HTTP client | httpx | Async HTTP requests |
-| HTML parsing | BeautifulSoup4 | Extract tags from HTML |
-| JS rendering | Playwright (optional) | For JavaScript-rendered pages |
+| HTML parsing | BeautifulSoup4 | Extract tags from rendered HTML |
+| JS rendering | Playwright | Douban search results are JavaScript-rendered; a real browser is required to get the populated DOM |
 | Containerization | Docker | Portable, deployable anywhere |
 
 ## API Design
@@ -68,13 +73,14 @@ The service returns the **cover image URL and alt text** of the top-matched Doub
 - **Single cover image** — only the main `#mainpic` image is returned, not all images on the page
 - **Top result by review count** — picks the most-reviewed result from 相关书影音 to ensure relevance
 - **Return URLs, not binaries** — minimizes bandwidth and keeps the service simple
-- **Async by default** — FastAPI + httpx handle concurrent requests efficiently
+- **Async by default** — FastAPI + Playwright async API handle concurrent requests efficiently
 - **Stateless** — no internal state; each request is fully independent
 
 ## Constraints & Best Practices
 
-- **Rate limiting** — 0.5s delay between requests to avoid hammering Douban
-- **Timeouts** — 15s request timeout to prevent hanging on slow responses
+- **Rate limiting** — 1s delay between requests to avoid hammering Douban
+- **Timeouts** — 30s browser navigation timeout to handle slow page loads
+- **Stealth** — browser launched with `--disable-blink-features=AutomationControlled` and `navigator.webdriver` masked to reduce bot detection
 
 ## Project Structure
 
