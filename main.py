@@ -5,6 +5,7 @@ from crawler import crawl
 app = FastAPI(title="DoubanScraper", description="Image crawling microservice")
 
 
+# async allows the handler to pause at `await` without blocking the server
 @app.post("/crawl", response_model=CrawlResponse)
 async def crawl_images(request: CrawlRequest):
     try:
