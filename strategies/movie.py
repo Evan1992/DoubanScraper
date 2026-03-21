@@ -1,3 +1,4 @@
+import logging
 import re
 from typing import List, Optional, Tuple
 from urllib.parse import urlencode
@@ -5,6 +6,8 @@ from bs4 import BeautifulSoup
 from models import ImageResult
 from fetch import fetch
 from strategies.base import SearchStrategy
+
+logger = logging.getLogger(__name__)
 
 
 class MovieSearchStrategy(SearchStrategy):
@@ -47,7 +50,7 @@ class MovieSearchStrategy(SearchStrategy):
             "search_text": name,
             "cat": "1002",
         })
-        print(f"Trying movie search: {url}")
+        logger.info(f"Trying movie search: {url}")
         html = await fetch(url)
 
         result = self._extract_top_result(html)
@@ -55,5 +58,5 @@ class MovieSearchStrategy(SearchStrategy):
             return []
 
         subject_url, img_src, count = result
-        print(f"Movie search succeeded: {subject_url} ({count} reviews)")
+        logger.info(f"Movie search succeeded: {subject_url} ({count} reviews)")
         return [ImageResult(url=img_src, referer=subject_url)]

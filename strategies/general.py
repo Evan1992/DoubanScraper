@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import re
 from typing import List, Optional, Tuple
 from urllib.parse import urlencode
@@ -8,13 +9,15 @@ from models import ImageResult
 from fetch import fetch, stealth_page, STEALTH_ARGS, REQUEST_DELAY
 from strategies.base import SearchStrategy
 
+logger = logging.getLogger(__name__)
+
 
 class GeneralSearchStrategy(SearchStrategy):
     """Primary: www.douban.com/search (movies, books, music, games, etc.)"""
 
     async def search(self, name: str) -> List[ImageResult]:
         url = "https://www.douban.com/search?" + urlencode({"q": name})
-        print(f"Trying general search: {url}")
+        logger.info(f"Trying general search: {url}")
         html = await fetch(url)
 
         # Debug dump for manual inspection
@@ -26,7 +29,7 @@ class GeneralSearchStrategy(SearchStrategy):
             return []
 
         subject_url, img_src, count = result
-        print(f"General search succeeded: {subject_url} ({count} reviews)")
+        logger.info(f"General search succeeded: {subject_url} ({count} reviews)")
 
         if not img_src:
             await asyncio.sleep(REQUEST_DELAY)

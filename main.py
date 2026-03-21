@@ -1,6 +1,9 @@
+import logging
 from fastapi import FastAPI, HTTPException
 from models import CrawlRequest, CrawlResponse
 from crawler import crawl
+
+logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(title="DoubanScraper", description="Image crawling microservice")
 

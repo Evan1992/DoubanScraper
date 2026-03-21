@@ -1,6 +1,9 @@
+import logging
 from typing import List
 from models import ImageResult
 from strategies import SearchStrategy, GeneralSearchStrategy, MovieSearchStrategy
+
+logger = logging.getLogger(__name__)
 
 _STRATEGIES: List[SearchStrategy] = [
     GeneralSearchStrategy(),
@@ -13,5 +16,5 @@ async def crawl(name: str) -> List[ImageResult]:
         results = await strategy.search(name)
         if results:
             return results
-    print("All search strategies exhausted, no results found")
+    logger.warning("All search strategies exhausted, no results found")
     return []
