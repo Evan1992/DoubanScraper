@@ -1,7 +1,10 @@
 import logging
 from typing import List
 from models import ImageResult
-from strategies import SearchStrategy, GeneralSearchStrategy, MovieSearchStrategy, MobileSearchStrategy
+from strategies.base import SearchStrategy
+from strategies.general import GeneralSearchStrategy
+from strategies.mobile import MobileSearchStrategy
+from strategies.movie import MovieSearchStrategy
 
 logger = logging.getLogger(__name__)
 
