@@ -16,6 +16,7 @@ async def crawl(name: str) -> List[ImageResult]:
     for strategy in _STRATEGIES:
         results = await strategy.search(name)
         if results:
+            logger.info(f"Strategy succeeded: {type(strategy).__name__}")
             return results
     logger.warning("All search strategies exhausted, no results found")
     return []
