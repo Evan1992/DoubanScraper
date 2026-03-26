@@ -1,12 +1,13 @@
 import logging
 from typing import List
 from models import ImageResult
-from strategies import SearchStrategy, GeneralSearchStrategy, MovieSearchStrategy
+from strategies import SearchStrategy, GeneralSearchStrategy, MovieSearchStrategy, MobileSearchStrategy
 
 logger = logging.getLogger(__name__)
 
 _STRATEGIES: List[SearchStrategy] = [
     GeneralSearchStrategy(),
+    MobileSearchStrategy(),
     MovieSearchStrategy(),
 ]
 
